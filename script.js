@@ -1,18 +1,15 @@
 document.addEventListener('DOMContentLoaded', function() {
             
-    // --- Mobile Menu Toggle ---
     const menuBtn = document.getElementById('menu-btn');
     const mobileMenu = document.getElementById('mobile-menu');
     const mobileLinks = mobileMenu.querySelectorAll('a.mobile-link');
     
     menuBtn.addEventListener('click', () => {
         mobileMenu.classList.toggle('hidden');
-        // Toggle ARIA expanded state
         const isExpanded = menuBtn.getAttribute('aria-expanded') === 'true';
         menuBtn.setAttribute('aria-expanded', !isExpanded);
     });
 
-    // Close mobile menu when a link is clicked
     mobileLinks.forEach(link => {
         link.addEventListener('click', () => {
             mobileMenu.classList.add('hidden');
@@ -20,7 +17,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // --- Sticky Header Background ---
     const header = document.querySelector('header');
     window.addEventListener('scroll', () => {
         if (window.scrollY > 50) {
@@ -30,14 +26,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // --- Scrollspy ---
     const sections = document.querySelectorAll('section[id]');
     const navLinks = document.querySelectorAll('nav a[href^="#"]');
     
     const observerOptions = {
         root: null,
         rootMargin: '0px',
-        threshold: 0.5 // 50% of the section must be visible
+        threshold: 0.5
     };
 
     const observer = new IntersectionObserver((entries) => {
@@ -53,12 +48,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
                 
-                // Mobile links
                 const mobileNavLinks = document.querySelectorAll('#mobile-menu a');
                 mobileNavLinks.forEach(link => {
-                    link.classList.remove('text-teal-400'); // Remove active style
+                    link.classList.remove('text-teal-400');
                     if (link.getAttribute('href') === `#${id}`) {
-                        link.classList.add('text-teal-400'); // Add active style
+                        link.classList.add('text-teal-400'); 
                     }
                 });
             }
@@ -69,21 +63,75 @@ document.addEventListener('DOMContentLoaded', function() {
         observer.observe(section);
     });
     
-    // --- Fade-in-on-scroll Animation ---
     const fadeElements = document.querySelectorAll('.fade-in');
     
     const fadeObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('visible');
-                // Optional: Stop observing once it's visible
-                // fadeObserver.unobserve(entry.target); 
+
             }
         });
-    }, { threshold: 0.1 }); // Trigger when 10% is visible
+    }, { threshold: 0.1 });
 
     fadeElements.forEach(el => {
         fadeObserver.observe(el);
     });
+
+    // --- New Project Slider Code ---
+    const projectsContainer = document.getElementById('projects-container');
+    const nextProjectBtn = document.getElementById('next-project-btn');
+    const projectSection = document.getElementById('projects');
+
+    if (projectsContainer && nextProjectBtn && projectSection) {
+        
+        const handleScroll = () => {
+            const container = projectsContainer;
+            const firstCard = container.querySelector('div[class*="flex-shrink-0"]');
+            if (!firstCard) return;
+
+            const cardWidth = firstCard.offsetWidth;
+            const containerGap = parseFloat(window.getComputedStyle(container).gap) || 0;
+            const scrollAmount = cardWidth + containerGap;
+
+            const atEnd = container.scrollLeft + container.clientWidth >= container.scrollWidth - (cardWidth / 2);
+
+            if (atEnd) {
+                container.scrollTo({
+                    left: 0,
+                    behavior: 'smooth'
+                });
+            } else {
+                container.scrollBy({
+                    left: scrollAmount,
+                    behavior: 'smooth'
+                });
+            }
+        };
+
+        const checkScrollability = () => {
+            setTimeout(() => {
+                const container = projectsContainer;
+                if (container.scrollWidth > container.clientWidth) {
+                    nextProjectBtn.classList.remove('hidden');
+                } else {
+                    nextProjectBtn.classList.add('hidden');
+                }
+            }, 150); // 150ms delay to wait for rendering
+        };
+        
+        nextProjectBtn.addEventListener('click', handleScroll);
+        
+        window.addEventListener('resize', checkScrollability);
+
+        const visibilityObserver = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                checkScrollability();
+                visibilityObserver.unobserve(projectSection);
+            }
+        }, { threshold: 0.1 });
+        
+        visibilityObserver.observe(projectSection);
+    }
 
 });
